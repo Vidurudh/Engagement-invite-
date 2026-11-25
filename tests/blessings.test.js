@@ -157,5 +157,22 @@ describe('Blessings API & Database Integration Tests', () => {
     const res = await request(app).get('/config.js');
     assert.equal(res.status, 200);
     assert.match(res.text, /window\.BLESSINGS_CONFIG/i);
+    assert.match(res.text, /GOOGLE_SHEETS_SCRIPT_URL/i);
+  });
+
+  test('Google Drive / Sheets endpoint should return valid blessings JSON schema', async () => {
+    const googleScriptUrl = 'https://script.google.com/macros/s/AKfycbz3kRw7TGqip54pyRUGl_W4JoWe9Rc5Joo_FzpluuisgYTZ1pdpjExnaJdmm1YOizS6ZQ/exec';
+    const response = await fetch(googleScriptUrl);
+    assert.equal(response.ok, true);
+    const data = await response.json();
+    assert.equal(data.success, true);
+    assert.equal(typeof data.count, 'number');
+    assert.ok(Array.isArray(data.blessings));
+    if (data.blessings.length > 0) {
+      const first = data.blessings[0];
+      assert.ok(first.name);
+      assert.ok(first.note);
+      assert.ok(first.created_at);
+    }
   });
 });

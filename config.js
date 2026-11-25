@@ -1,17 +1,14 @@
 /**
  * Ranjani & Vidurudh Srinivasan — Engagement Invitation Configuration
  *
- * This configuration allows you to connect the Blessings Wall to:
- * 1. Google Drive / Google Sheets (zero server maintenance, free, viewable in Google Drive)
- * 2. PostgreSQL / Node Server API (full relational database backend)
+ * This configuration connects the Blessings Wall to:
+ * Option 1: Google Drive / Google Sheets (Active)
  */
 window.BLESSINGS_CONFIG = {
-  // Option 1: Google Apps Script Web App URL (from your Google Drive sheet)
-  // Example: "https://script.google.com/macros/s/AKfycbx.../exec"
-  // Refer to google-drive-sheets/README.md for the step-by-step setup guide.
-  GOOGLE_SHEETS_SCRIPT_URL: "",
+  // Google Apps Script Web App URL connected to your Google Drive Sheet
+  GOOGLE_SHEETS_SCRIPT_URL: "https://script.google.com/macros/s/AKfycbz3kRw7TGqip54pyRUGl_W4JoWe9Rc5Joo_FzpluuisgYTZ1pdpjExnaJdmm1YOizS6ZQ/exec",
 
-  // Option 2: Backend API endpoint (used when running the Node.js + PostgreSQL server)
+  // Local or hosted backend API endpoint (fallback)
   API_BASE_URL: "/api",
 
   // Auto-refresh blessings interval in milliseconds (30 seconds)
