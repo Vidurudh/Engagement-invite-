@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Ranjani &amp; Vidurudh Srinivasan — Engagement Invitation</title>
+  <script src="config.js"></script>
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -258,21 +259,37 @@
             </div>
 
             <button
+              id="submit-blessing-btn"
               type="submit"
-              class="w-full rounded-full bg-[#5c1620] px-5 py-2.5 text-sm font-medium text-amber-50 transition hover:bg-[#751d29]"
+              class="w-full rounded-full bg-[#5c1620] px-5 py-2.5 text-sm font-medium text-amber-50 transition hover:bg-[#751d29] disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
-              Send Blessing
+              <span id="btn-text">Send Blessing</span>
             </button>
           </div>
         </form>
 
         <div class="gold-border flex flex-col rounded-2xl bg-[#fffaf0] p-6 shadow-sm">
           <div class="mb-4 flex items-center justify-between border-b border-amber-800/15 pb-3">
-            <h3 class="font-serif-display text-2xl font-bold text-[#5c1620]">Blessings Wall</h3>
-            <span id="blessing-summary" class="rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-[#5c1620]">0 blessings</span>
+            <div>
+              <h3 class="font-serif-display text-2xl font-bold text-[#5c1620]">Blessings Wall</h3>
+              <p class="text-xs text-[#7a4b2a]">Warm wishes from family &amp; friends</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <span id="blessing-summary" class="rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-[#5c1620]">0 blessings</span>
+              <button
+                id="refresh-blessings-btn"
+                type="button"
+                title="Refresh blessings"
+                class="rounded-full border border-amber-800/20 bg-white/80 p-1.5 text-xs text-[#5c1620] hover:bg-amber-100 transition"
+              >
+                <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                </svg>
+              </button>
+            </div>
           </div>
-          <div id="blessings-list" class="flex-1 space-y-3 overflow-y-auto max-h-72 pr-1">
-            <p class="text-sm italic text-[#7a4b2a]">Be the first to share a blessing for Ranjani &amp; Vidurudh Srinivasan.</p>
+          <div id="blessings-list" class="flex-1 space-y-3 overflow-y-auto max-h-80 pr-1">
+            <p class="text-sm italic text-[#7a4b2a]">Loading blessings...</p>
           </div>
         </div>
       </div>
@@ -436,7 +453,7 @@
         document.body.removeChild(ta);
       }
 
-      // Blessings Wall
+      // Blessings Wall with Online Database & Google Drive Sync
       const STORAGE_KEY = "rv_engagement_blessings_v1";
       let entries = [];
       try {
@@ -449,6 +466,27 @@
       const blessingForm = document.getElementById("blessing-form");
       const blessingsList = document.getElementById("blessings-list");
       const blessingSummary = document.getElementById("blessing-summary");
+      const submitBtn = document.getElementById("submit-blessing-btn");
+      const btnText = document.getElementById("btn-text");
+      const refreshBtn = document.getElementById("refresh-blessings-btn");
+
+      function formatTime(isoString) {
+        if (!isoString) return "";
+        try {
+          const date = new Date(isoString);
+          if (isNaN(date.getTime())) return "";
+          const now = new Date();
+          const diffMs = now - date;
+          const diffMins = Math.floor(diffMs / 60000);
+          if (diffMins < 1) return "Just now";
+          if (diffMins < 60) return diffMins + "m ago";
+          const diffHours = Math.floor(diffMins / 60);
+          if (diffHours < 24) return diffHours + "h ago";
+          return date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+        } catch (e) {
+          return "";
+        }
+      }
 
       function renderBlessings() {
         blessingSummary.textContent = entries.length + (entries.length === 1 ? " blessing" : " blessings");
@@ -460,24 +498,145 @@
         blessingsList.innerHTML = "";
         entries.forEach(function (item) {
           const card = document.createElement("div");
-          card.className = "rounded-xl border border-amber-800/15 bg-white/85 p-3.5";
+          card.className = "rounded-xl border border-amber-800/15 bg-white/90 p-4 transition shadow-xs";
+
+          const headerRow = document.createElement("div");
+          headerRow.className = "flex items-baseline justify-between gap-2";
+
           const nameEl = document.createElement("div");
           nameEl.className = "text-sm font-semibold text-[#5c1620]";
           nameEl.textContent = item.name;
-          card.appendChild(nameEl);
+          headerRow.appendChild(nameEl);
+
+          if (item.created_at) {
+            const timeEl = document.createElement("span");
+            timeEl.className = "text-[11px] text-[#7a4b2a]";
+            timeEl.textContent = formatTime(item.created_at);
+            headerRow.appendChild(timeEl);
+          }
+          card.appendChild(headerRow);
 
           if (item.note) {
             const noteEl = document.createElement("p");
-            noteEl.className = "mt-1 text-xs text-[#4f2d31]";
+            noteEl.className = "mt-1.5 text-xs leading-relaxed text-[#4f2d31]";
             noteEl.textContent = item.note;
             card.appendChild(noteEl);
           }
           blessingsList.appendChild(card);
         });
       }
-      renderBlessings();
 
-      blessingForm.addEventListener("submit", function (e) {
+      // Online Data Fetching (Google Drive / Sheets OR PostgreSQL API)
+      async function loadOnlineBlessings(silent = false) {
+        if (!silent && entries.length === 0) {
+          blessingsList.innerHTML = '<p class="text-sm italic text-[#7a4b2a]">Loading blessings...</p>';
+        }
+
+        const config = window.BLESSINGS_CONFIG || {};
+        let fetchedItems = null;
+
+        // 1. Try Google Sheets Web App if URL configured
+        if (config.GOOGLE_SHEETS_SCRIPT_URL && config.GOOGLE_SHEETS_SCRIPT_URL.startsWith("http")) {
+          try {
+            const res = await fetch(config.GOOGLE_SHEETS_SCRIPT_URL, { method: "GET" });
+            if (res.ok) {
+              const data = await res.json();
+              if (data && Array.isArray(data.blessings)) {
+                fetchedItems = data.blessings;
+              }
+            }
+          } catch (err) {
+            console.warn("Could not load from Google Sheets:", err);
+          }
+        }
+
+        // 2. Try Backend API (Node + PostgreSQL) if Google Sheets wasn't used
+        if (!fetchedItems) {
+          const apiBase = config.API_BASE_URL || "/api";
+          try {
+            const res = await fetch(apiBase + "/blessings", { method: "GET" });
+            if (res.ok) {
+              const data = await res.json();
+              if (data && Array.isArray(data.blessings)) {
+                fetchedItems = data.blessings;
+              }
+            }
+          } catch (err) {
+            // Backend API not running or network offline
+          }
+        }
+
+        if (fetchedItems && Array.isArray(fetchedItems)) {
+          entries = fetchedItems;
+          try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+          } catch (err) {}
+        }
+
+        renderBlessings();
+      }
+
+      // Save Blessing to Online Store
+      async function saveOnlineBlessing(name, note) {
+        const config = window.BLESSINGS_CONFIG || {};
+        let savedOnline = false;
+
+        // 1. Try Google Sheets Web App if URL is provided
+        if (config.GOOGLE_SHEETS_SCRIPT_URL && config.GOOGLE_SHEETS_SCRIPT_URL.startsWith("http")) {
+          try {
+            const res = await fetch(config.GOOGLE_SHEETS_SCRIPT_URL, {
+              method: "POST",
+              headers: { "Content-Type": "text/plain;charset=utf-8" },
+              body: JSON.stringify({ name: name, note: note })
+            });
+            if (res.ok) savedOnline = true;
+          } catch (err) {
+            console.warn("Failed saving to Google Sheets:", err);
+          }
+        }
+
+        // 2. Try Backend API (Node + PostgreSQL)
+        if (!savedOnline) {
+          const apiBase = config.API_BASE_URL || "/api";
+          try {
+            const res = await fetch(apiBase + "/blessings", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ name: name, note: note })
+            });
+            if (res.ok) savedOnline = true;
+          } catch (err) {
+            console.warn("Failed saving to backend API:", err);
+          }
+        }
+
+        return savedOnline;
+      }
+
+      // Initial render & fetch
+      renderBlessings();
+      loadOnlineBlessings();
+
+      if (refreshBtn) {
+        refreshBtn.addEventListener("click", function () {
+          refreshBtn.classList.add("animate-spin");
+          loadOnlineBlessings().finally(function () {
+            setTimeout(function () {
+              refreshBtn.classList.remove("animate-spin");
+            }, 600);
+          });
+        });
+      }
+
+      // Periodic auto-sync
+      const pollInterval = (window.BLESSINGS_CONFIG && window.BLESSINGS_CONFIG.POLL_INTERVAL_MS) || 30000;
+      if (pollInterval > 0) {
+        setInterval(function () {
+          loadOnlineBlessings(true);
+        }, pollInterval);
+      }
+
+      blessingForm.addEventListener("submit", async function (e) {
         e.preventDefault();
         const nameInput = document.getElementById("guest-name");
         const noteInput = document.getElementById("guest-note");
@@ -486,19 +645,30 @@
         const note = noteInput.value.trim();
         if (!name || !note) return;
 
-        entries.unshift({
-          name: name,
-          note: note
-        });
+        if (submitBtn) submitBtn.disabled = true;
+        if (btnText) btnText.textContent = "Sending blessing...";
 
+        const newBlessing = {
+          name: name,
+          note: note,
+          created_at: new Date().toISOString()
+        };
+
+        // Optimistic UI update
+        entries.unshift(newBlessing);
+        renderBlessings();
         try {
           localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
-        } catch (err) {
-          // ignore storage errors
-        }
+        } catch (err) {}
 
+        // Persist online
+        await saveOnlineBlessing(name, note);
+
+        // Reset UI state
         blessingForm.reset();
-        renderBlessings();
+        if (submitBtn) submitBtn.disabled = false;
+        if (btnText) btnText.textContent = "Send Blessing";
+
         showToast("Thank you for your blessing!");
       });
     })();
